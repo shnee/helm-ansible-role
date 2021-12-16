@@ -1,0 +1,13 @@
+---
+helm_version: 3.7.2
+helm_arch: amd64
+helm_install_dir: /usr/local/bin
+helm_release_base_url: https://get.helm.sh
+helm_download_sha256:
+  3.7.2:
+    amd64: 4ae30e48966aba5f807a4e140dad6736ee1a392940101e4d79ffb4ee86200a9e
+    arm64: b0214eabbb64791f563bd222d17150ce39bf4e2f5de49f49fdb456ce9ae8162f
+
+# A temporary directory to extract the tar.gz helm release. It get's deleted by
+# a handler if it's ever created.
+tmp_dir: /tmp/helm-ansible

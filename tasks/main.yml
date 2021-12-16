@@ -1,0 +1,60 @@
+---
+- name: Check if helm is already installed.
+  stat:
+    path: "{{ helm_install_dir }}/helm"
+  failed_when: false
+  register: helm_stat
+
+- name: >
+    "Check the installed helm version against the desired version
+     {{ helm_version }}."
+  command: "{{ helm_install_dir }}/helm version"
+  changed_when: false
+  failed_when: false
+  when: helm_stat.stat.exists
+  register: existing_helm_version
+
+- name: Install helm
+  block:
+
+    - name: Create a tmp directory to extract helm tar.gz
+      file:
+        path: "{{ tmp_dir }}"
+        state: directory
+        mode: 0700
+      notify: Clean up tmp dir
+
+    - name: Download helm tar.gz.
+      get_url:
+        url: "{{ helm_release_base_url }}/\
+              helm-v{{ helm_version }}-linux-{{ helm_arch }}.tar.gz"
+        dest: "{{ tmp_dir }}"
+        checksum: "sha256:{{ helm_download_sha256[helm_version][helm_arch] }}"
+        mode: 0700
+
+    - name: Extract helm tar.gz
+      unarchive:
+        src: "{{ tmp_dir }}/\
+              helm-v{{ helm_version }}-linux-{{ helm_arch }}.tar.gz"
+        dest: "{{ tmp_dir }}"
+        remote_src: true
+        mode: 0700
+
+    - name: Make sure install directory exists.
+      file:
+        path: "{{ helm_install_dir }}"
+        state: directory
+        mode: 0755
+      become: true
+
+    - name: Copy helm binary from tmp folder to install location.
+      copy:
+        src: "{{ tmp_dir }}/linux-{{ helm_arch }}/helm"
+        remote_src: true
+        dest: "{{ helm_install_dir }}/helm"
+        mode: 0755
+      become: true
+
+  when: >
+    not helm_stat.stat.exists or
+    helm_version not in existing_helm_version.stdout

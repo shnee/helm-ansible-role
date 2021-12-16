@@ -1,0 +1,5 @@
+---
+- name: Clean up tmp dir
+  file:
+    path: "{{ tmp_dir }}"
+    state: absent
